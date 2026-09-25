@@ -60,5 +60,10 @@ target_compile_definitions(nacl PUBLIC
 target_sources(nacl PUBLIC
   FILE_SET CXX_MODULES FILES
   src/types.cppm
+  src/meta.cppm
+  src/concepts.cppm
+  src/panic.cppm
+  src/utils.cppm
+  src/ref.cppm
   src/nacl.cppm
 )
