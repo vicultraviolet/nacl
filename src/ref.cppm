@@ -70,13 +70,16 @@ export namespace nacl {
 		}
 
         [[nodiscard]] constexpr static Ref _FromPtr(T* ptr) { return Ref(ptr); }
+
+        [[nodiscard]] constexpr static Ref _None(void) { return Ref(nullptr); }
+        [[nodiscard]] constexpr bool _is_some(void) const { return m_Ptr; }
     private:
         explicit Ref(T* ptr) : m_Ptr(ptr) {}
     private:
         T* m_Ptr;
     };
 
-    template<concepts::IsVoid T>
+    template<concepts::Void T>
     class Ref<T> {
     public:
         using ValueType = T;
@@ -128,6 +131,9 @@ export namespace nacl {
     	}
 
         [[nodiscard]] constexpr static Ref _FromPtr(T* ptr) { return Ref(ptr); }
+
+        [[nodiscard]] constexpr static Ref _None(void) { return Ref(nullptr); }
+        [[nodiscard]] constexpr bool _is_some(void) const { return m_Ptr; }
     private:
         explicit Ref(T* ptr) : m_Ptr(ptr) {}
     private:
