@@ -34,6 +34,13 @@ export namespace nacl {
         return As<meta::RemoveReference<T>&&>(Preserve<T>(from));
     }
 
+    template<typename T, typename U = T>
+    constexpr T Exchange(T& obj, U&& new_value) {
+        T old_value = AsRvalue(obj);
+        obj = Preserve<U>(new_value);
+        return old_value;
+    }
+
     template<typename T, typename... Args>
     constexpr T* ConstructAt(T* ptr, Args&&... args) {
         return ::new (ptr) T(Preserve<Args>(args)...);

@@ -33,15 +33,13 @@ export namespace nacl {
         }
 
         Ref(Ref&& other) noexcept
-        : m_Ptr(other.m_Ptr) {
-            other.m_Ptr = nullptr;
-        }
+        : m_Ptr(Exchange(other.m_Ptr, nullptr))
+        {}
         Ref& operator=(Ref&& other) noexcept {
             if (this == &other)
                 return *this;
 
-            m_Ptr = other.m_Ptr;
-            other.m_Ptr = nullptr;
+            m_Ptr = Exchange(other.m_Ptr, nullptr);
 
             return *this;
         }
@@ -102,15 +100,13 @@ export namespace nacl {
         }
 
         Ref(Ref&& other) noexcept
-        : m_Ptr(other.m_Ptr) {
-            other.m_Ptr = nullptr;
-        }
+        : m_Ptr(Exchange(other.m_Ptr, nullptr))
+        {}
         Ref& operator=(Ref&& other) noexcept {
             if (this == &other)
                 return *this;
 
-            m_Ptr = other.m_Ptr;
-            other.m_Ptr = nullptr;
+            m_Ptr = Exchange(other.m_Ptr, nullptr);
 
             return *this;
         }
