@@ -73,5 +73,6 @@ target_sources(nacl PUBLIC
   src/allocate_bytes.cppm
   src/aligned_heap_allocator.cppm
   src/box.cppm
+  src/array_iterators.cppm
   src/nacl.cppm
 )

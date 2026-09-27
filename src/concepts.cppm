@@ -1,5 +1,6 @@
 export module nacl:concepts;
 
+import :types;
 import :meta;
 import :utils;
 
@@ -54,6 +55,62 @@ export namespace nacl {
             { T::_None() } -> Same<T>;
             { t._is_some() } -> Same<bool>;
         };
+
+        template<typename T>
+        concept Readable = requires(T x) {
+            typename T::ValueType;
+            { *x } -> Convertible<typename T::ValueType>;
+            //{ x.operator->() } -> Same<typename T::ValueType*>;
+        };
+
+        template<typename T>
+        concept Incrementable = requires(T x) {
+            { ++x } -> Same<T&>;
+            { x++ } -> Same<T>;
+        };
+
+        template<typename T>
+        concept Decrementable = requires(T x) {
+            { --x } -> Same<T&>;
+            { x-- } -> Same<T>;
+        };
+
+        template<typename T>
+        concept EqualityComparable = requires(T a, T b) {
+            { a == b } -> Same<bool>;
+            { a != b } -> Same<bool>;
+        };
+
+        template<typename T>
+        concept TotallyOrdered = requires(T a, T b) {
+            { a <  b } -> Same<bool>;
+            { a >  b } -> Same<bool>;
+            { a <= b } -> Same<bool>;
+            { a >= b } -> Same<bool>;
+        };
+
+        template<typename T>
+        concept InputIterator =
+            Readable<T> &&
+            Incrementable<T> &&
+            EqualityComparable<T>;
+
+        template<typename T>
+        concept BidirectionalIterator =
+            InputIterator<T> &&
+            Decrementable<T>;
+
+        template<typename T>
+        concept RandomAccessIterator =
+            BidirectionalIterator<T> &&
+            TotallyOrdered<T> &&
+            requires(T it, usize n) {
+                { it += n } -> Same<T&>;
+                { it -= n } -> Same<T&>;
+                { it +  n } -> Same<T>;
+                { it -  n } -> Same<T>;
+                { it - it } -> Same<isize>;
+            };
 
         template<typename T>
         concept DefaultConstructable = requires {
