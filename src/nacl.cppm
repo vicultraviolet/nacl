@@ -14,3 +14,5 @@ export import :allocate_aligned;
 export import :allocate_bytes;
 export import :aligned_heap_allocator;
 export import :box;
+export import :array_iterators;
+export import :list;
