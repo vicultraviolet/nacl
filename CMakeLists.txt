@@ -59,14 +59,14 @@ target_compile_definitions(nacl PUBLIC
 
 target_sources(nacl PUBLIC
   FILE_SET CXX_MODULES FILES
-  src/types.cppm
   src/unit.cppm
+  src/types.cppm
+  src/tags.cppm
   src/meta.cppm
   src/concepts.cppm
   src/panic.cppm
   src/utils.cppm
   src/ref.cppm
-  src/tags.cppm
   src/option.cppm
   src/downcast.cppm
   src/allocate_aligned.cppm
