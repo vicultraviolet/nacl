@@ -339,4 +339,12 @@ export namespace nacl {
 
     template<typename T>
     [[nodiscard]] constexpr Option<T> None(void) { return Option<T>::None(); }
+
+    template<typename T>
+    [[nodiscard]] Option<Ref<T>> OptionRefOf(T* ptr) {
+        if (ptr)
+            return SomeWith(Ref<T>::_Of, ptr);
+        else
+            return None();
+    }
 } // export namespace nacl
