@@ -131,6 +131,24 @@ export namespace nacl {
         template<bool B, typename T, typename U>
         using Conditional = typename conditional<B, T, U>::type;
 
+        template<typename T>
+        struct is_union : constant<bool, __is_union(T)> {};
+        template<typename T>
+        constexpr bool IsUnion = is_union<T>::value;
+
+        namespace detail {
+            template<class T>
+            constant<bool, !IsUnion<T>> test_is_class(int T::*);
+
+            template<class>
+            false_type test_is_class(...);
+        } // namespace detail
+
+        template<typename T>
+        struct is_class : decltype(detail::test_is_class<T>(nullptr)) {};
+        template<typename T>
+        constexpr bool IsClass = is_class<T>::value;
+
         namespace detail {
             template<typename T>
             auto test_returnable(int) -> decltype(
@@ -155,6 +173,26 @@ export namespace nacl {
         > {};
         template<typename From, typename To>
         constexpr bool IsConvertible = is_convertible<From, To>::value;
+
+        namespace detail {
+            template<typename B>
+            true_type test_ptr_conv(const volatile B*);
+            template<typename>
+            false_type test_ptr_conv(const volatile void*);
+
+            template<typename B, typename D>
+            auto test_is_base_of(int) -> decltype(test_ptr_conv<B>(static_cast<D*>(nullptr)));
+            template<typename, typename>
+            auto test_is_base_of(...) -> true_type;
+        }
+
+        template<typename Base, typename Derived>
+        struct is_base_of : constant<bool,
+            IsClass<Base> && IsClass<Derived> &&
+            decltype(detail::test_is_base_of<Base, Derived>(0))::value
+        > {};
+        template<typename Base, typename Derived>
+        constexpr bool IsBaseOf = is_base_of<Base, Derived>::value;
 
         template<typename F, typename... Args>
         struct result_of : type_is<
