@@ -9,3 +9,4 @@ export import :utils;
 export import :ref;
 export import :tags;
 export import :option;
+export import :downcast;

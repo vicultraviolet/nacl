@@ -68,5 +68,6 @@ target_sources(nacl PUBLIC
   src/ref.cppm
   src/tags.cppm
   src/option.cppm
+  src/downcast.cppm
   src/nacl.cppm
 )
