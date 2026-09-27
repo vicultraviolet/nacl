@@ -10,3 +10,6 @@ export import :ref;
 export import :tags;
 export import :option;
 export import :downcast;
+export import :allocate_aligned;
+export import :allocate_bytes;
+export import :aligned_heap_allocator;

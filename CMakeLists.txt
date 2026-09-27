@@ -69,5 +69,8 @@ target_sources(nacl PUBLIC
   src/tags.cppm
   src/option.cppm
   src/downcast.cppm
+  src/allocate_aligned.cppm
+  src/allocate_bytes.cppm
+  src/aligned_heap_allocator.cppm
   src/nacl.cppm
 )
