@@ -1,3 +1,7 @@
+module;
+
+#include "./macros.hpp"
+
 export module nacl:list;
 
 import :types;
@@ -8,14 +12,6 @@ import :utils;
 import :ref;
 import :array_iterators;
 import :aligned_heap_allocator;
-
-#if defined(__has_cpp_attribute) && __has_cpp_attribute(msvc::no_unique_address)
-    #define NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
-#elif defined(__has_cpp_attribute) && __has_cpp_attribute(no_unique_address)
-    #define NO_UNIQUE_ADDRESS [[no_unique_address]]
-#else
-    #define NO_UNIQUE_ADDRESS
-#endif
 
 export namespace nacl {
     template<typename T>
@@ -177,8 +173,6 @@ export namespace nacl {
         [[nodiscard]] constexpr T& operator[](usize i) { return m_Data[i]; }
         [[nodiscard]] constexpr const T& operator[](usize i) const { return m_Data[i]; }
 
-        [[nodiscard]] constexpr Ref<T> ref(void) { return RefFromPtr(m_Data); }
-        [[nodiscard]] constexpr Ref<const T> ref(void) const { return RefFromPtr(m_Data); }
         [[nodiscard]] constexpr Ref<T> ref(void) { return RefOf(m_Data); }
         [[nodiscard]] constexpr Ref<const T> ref(void) const { return RefOf(m_Data); }
 
@@ -208,6 +202,6 @@ export namespace nacl {
     private:
         T* m_Data;
         usize m_Length, m_Capacity;
-        NO_UNIQUE_ADDRESS Allocator<T> m_Allocator;
+        NACL_NO_UNIQUE_ADDRESS Allocator<T> m_Allocator;
     };
 } // export namespace nacl
