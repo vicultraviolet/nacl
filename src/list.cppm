@@ -5,6 +5,7 @@ import :tags;
 import :meta;
 import :panic;
 import :utils;
+import :ref;
 import :array_iterators;
 import :aligned_heap_allocator;
 
@@ -178,6 +179,8 @@ export namespace nacl {
 
         [[nodiscard]] constexpr Ref<T> ref(void) { return RefFromPtr(m_Data); }
         [[nodiscard]] constexpr Ref<const T> ref(void) const { return RefFromPtr(m_Data); }
+        [[nodiscard]] constexpr Ref<T> ref(void) { return RefOf(m_Data); }
+        [[nodiscard]] constexpr Ref<const T> ref(void) const { return RefOf(m_Data); }
 
         [[nodiscard]] constexpr T* ptr(void) { return m_Data; }
         [[nodiscard]] constexpr const T* ptr(void) const { return m_Data; }
