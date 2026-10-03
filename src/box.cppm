@@ -22,12 +22,18 @@ export namespace nacl {
             allocator.construct(data, Preserve<Args>(args)...);
             return Box(data);
         }
-
         template<typename F, typename... Args>
         [[nodiscard]] static Box MakeWith(F&& fn, Args&&... args) {
             auto allocator = Allocator<T>::New();
             Ref<T> data = allocator.alloc(1);
             allocator.construct_with(data, Preserve<F>(fn), Preserve<Args>(args)...);
+            return Box(data);
+        }
+        template<concepts::Maker D>
+        [[nodiscard]] static Box MakeFrom(D&& deferred) {
+            auto allocator = Allocator<T>::New();
+            Ref<T> data = allocator.alloc(1);
+            allocator.construct_from(data, Preserve<D>(deferred));
             return Box(data);
         }
 
@@ -122,12 +128,18 @@ export namespace nacl {
 
 	template<typename T, typename... Args>
 	[[nodiscard]] constexpr Box<T> MakeBox(Args&&... args) {
-    	return Box<T>::Make(Forward<Args>(args)...);
+    	return Box<T>::Make(Preserve<Args>(args)...);
 	}
 
 	template<typename F, typename... Args>
 	[[nodiscard]] constexpr auto MakeBoxWith(F&& fn, Args&&... args) {
 	    using T = typename meta::ResultOf<F, Args...>;
-		return Box<T>::MakeWith(Forward<F>(fn), Forward<Args>(args)...);
+		return Box<T>::MakeWith(Preserve<F>(fn), Preserve<Args>(args)...);
+	}
+
+	template<concepts::Maker D>
+	[[nodiscard]] constexpr auto MakeBoxFrom(D&& deferred) {
+	    using T = typename D::ResultOf;
+		return Box<T>::MakeFrom(Preserve<D>(deferred));
 	}
 } // export namespace nacl

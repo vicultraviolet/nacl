@@ -3,6 +3,7 @@ export module nacl:aligned_heap_allocator;
 import :ref;
 import :allocate_bytes;
 import :utils;
+import :concepts;
 
 export namespace nacl {
     template<typename T>
@@ -36,6 +37,10 @@ export namespace nacl {
         template<typename F, typename... Args>
         void construct_with(Ref<T> ref, F&& fn, Args&&... args) {
             ConstructAtWith(ref.ptr(), Preserve<F>(fn), Preserve<Args>(args)...);
+        }
+        template<concepts::Maker D>
+        void construct_from(Ref<T> ref, D&& deferred) {
+            ConstructAtFrom(ref.ptr(), Preserve<D>(deferred));
         }
         void destruct(Ref<T> ref) noexcept {
             DestructAt(ref.ptr());

@@ -45,11 +45,16 @@ export namespace nacl {
             ConstructAt(opt.ptr(), Preserve<Args>(args)...);
             return opt;
         }
-
         template<typename F, typename... Args>
         [[nodiscard]] static NonIntrusiveOption SomeWith(F&& fn, Args&&... args) {
             NonIntrusiveOption opt;
             ConstructAtWith(opt.ptr(), Preserve<F>(fn), Preserve<Args>(args)...);
+            return opt;
+        }
+        template<concepts::Maker D>
+        [[nodiscard]] static NonIntrusiveOption SomeFrom(D&& deferred) {
+            NonIntrusiveOption opt;
+            ConstructAtFrom(opt.ptr(), Preserve<D>(deferred));
             return opt;
         }
 
@@ -166,11 +171,16 @@ export namespace nacl {
             ConstructAt(opt.ptr(), Preserve<Args>(args)...);
             return opt;
         }
-
         template<typename F, typename... Args>
         [[nodiscard]] static IntrusiveOption SomeWith(F&& fn, Args&&... args) {
             IntrusiveOption opt(true);
             ConstructAtWith(opt.ptr(), Preserve<F>(fn), Preserve<Args>(args)...);
+            return opt;
+        }
+        template<concepts::Maker D>
+        [[nodiscard]] static IntrusiveOption SomeFrom(D&& deferred) {
+            IntrusiveOption opt(true);
+            ConstructAtFrom(opt.ptr(), Preserve<D>(deferred));
             return opt;
         }
 
@@ -335,6 +345,11 @@ export namespace nacl {
             Preserve<F>(fn),
             Preserve<Args>(args)...
         );
+    }
+    template<concepts::Maker D>
+    [[nodiscard]] constexpr auto SomeFrom(D&& deferred) {
+        using T = typename D::ResultOf;
+        return Option<T>::SomeFrom(Preserve<D>(deferred));
     }
 
     template<typename T>

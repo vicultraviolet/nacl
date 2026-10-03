@@ -25,10 +25,48 @@ export namespace nacl {
         using ReverseIterator = ArrayReverseIterator<List>;
         using ConstReverseIterator = ArrayConstReverseIterator<List>;
     public:
-        [[nodiscard]] static List Empty(void) {
-            return List(nullptr, 0, 0);
-        }
+        [[nodiscard]] static List Empty(void) { return List(); }
         [[nodiscard]] static List Default(void) { return Empty(); }
+
+        template<typename... Elements>
+        [[nodiscard]] static List New(Elements&&... elements) {
+            auto list = Reserve(sizeof...(Elements));
+            ((void)[&](void) {
+                list.add_to_back(Preserve<Elements>(elements));
+            }(), ...);
+            return list;
+        }
+
+        template<concepts::Maker... D>
+        [[nodiscard]] static List Make(D&&... deferreds) {
+            auto list = Reserve(sizeof...(D));
+            ((void)[&](void) {
+                list.add_to_back_from(Preserve<D>(deferreds));
+            }(), ...);
+            return list;
+        }
+
+        template<typename... Args>
+        [[nodiscard]] static List Fill(usize length, const Args&... args) {
+            auto list = Reserve(length);
+            while (list.m_Length != length)
+                list.add_to_back(args...);
+            return list;
+        }
+        template<typename F, typename... Args>
+        [[nodiscard]] static List FillWith(usize length, const F& fn, const Args&... args) {
+            auto list = Reserve(length);
+            while (list.m_Length != length)
+                list.add_to_back_with(fn, args...);
+            return list;
+        }
+        template<concepts::Maker D>
+        [[nodiscard]] static List FillFrom(usize length, const D& deferred) {
+            auto list = Reserve(length);
+            while (list.m_Length != length)
+                list.add_to_back_from(deferred);
+            return list;
+        }
 
         [[nodiscard]] static List Reserve(usize capacity) {
             auto list = Empty();
@@ -39,25 +77,23 @@ export namespace nacl {
         ~List(void) { discard(); }
 
         List(const List& other)
-        : List(nullptr, 0, 0) {
+        : List() {
             reserve(other.m_Capacity);
             while (m_Length != other.m_Length)
                 add_to_back(other[m_Length]);
         }
         List& operator=(const List& other) {
-            if (this == &other)
-                return *this;
+            if (this != &other) {
+                if (m_Capacity != other.m_Capacity) {
+                    discard();
+                    reserve(other.m_Capacity);
+                } else {
+                    clear();
+                }
 
-            if (m_Capacity != other.m_Capacity) {
-                discard();
-                reserve(other.m_Capacity);
-            } else {
-                clear();
+                while (m_Length != other.m_Length)
+                    add_to_back(other[m_Length]);
             }
-
-            while (m_Length != other.m_Length)
-                add_to_back(other[m_Length]);
-
             return *this;
         }
 
@@ -68,15 +104,13 @@ export namespace nacl {
           m_Allocator(Allocator<T>::New())
         {}
         List& operator=(List&& other) {
-            if (this == &other)
-                return *this;
+            if (this != &other) {
+                discard();
 
-            discard();
-
-            m_Data = Exchange(other.m_Data, nullptr);
-            m_Length = Exchange(other.m_Length, 0);
-            m_Capacity = Exchange(other.m_Capacity, 0);
-
+                m_Data = Exchange(other.m_Data, nullptr);
+                m_Length = Exchange(other.m_Length, 0);
+                m_Capacity = Exchange(other.m_Capacity, 0);
+            }
             return *this;
         }
 
@@ -99,6 +133,16 @@ export namespace nacl {
             );
             return m_Length++;
         }
+        template<concepts::Maker D>
+        usize add_to_back_from(D&& deferred) {
+            _grow_if();
+            m_Allocator.construct_from(
+                RefOf(m_Data + m_Length),
+                Preserve<D>(deferred)
+            );
+            return m_Length++;
+        }
+
         void remove_from_back(void) {
             m_Allocator.destruct(RefOf(m_Data + m_Length - 1));
             m_Length--;
@@ -185,6 +229,8 @@ export namespace nacl {
         [[nodiscard]] constexpr usize capacity(void) const { return m_Capacity; }
         [[nodiscard]] constexpr const auto& allocator(void) const { return m_Allocator; }
     private:
+        List(void) : List(nullptr, 0, 0) {}
+
         List(T* data, usize length, usize capacity)
         : m_Data(data),
           m_Length(length), m_Capacity(capacity),
@@ -204,4 +250,22 @@ export namespace nacl {
         usize m_Length, m_Capacity;
         NACL_NO_UNIQUE_ADDRESS Allocator<T> m_Allocator;
     };
+
+    template<typename Head, typename... Tail>
+    [[nodiscard]] auto NewList(Head&& head, Tail&&... tail) {
+        using T = meta::RemoveReference<Head>;
+        return List<T>::New(Preserve<Head>(head), Preserve<Tail>(tail)...);
+    }
+
+    template<concepts::Maker HeadDeferred, concepts::Maker... TailDeferred>
+    [[nodiscard]] auto MakeList(
+        HeadDeferred&& head_deferred,
+        TailDeferred&&... tail_deferred
+    ) {
+        using T = typename HeadDeferred::ResultOf;
+        return List<T>::Make(
+            Preserve<HeadDeferred>(head_deferred),
+            Preserve<TailDeferred>(tail_deferred)...
+        );
+    }
 } // export namespace nacl

@@ -49,6 +49,10 @@ export namespace nacl {
     constexpr T* ConstructAtWith(T* ptr, F&& fn, Args&&... args) {
         return ::new (ptr) T(Preserve<F>(fn)(Preserve<Args>(args)...));
     }
+    template<typename T, typename D>
+    constexpr T* ConstructAtFrom(T* ptr, D&& deferred) {
+        return ::new (ptr) T(Preserve<D>(deferred).make());
+    }
     template<typename T>
     constexpr void DestructAt(T* ptr) {
         ptr->~T();
