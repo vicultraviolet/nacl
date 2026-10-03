@@ -116,5 +116,10 @@ export namespace nacl {
         concept DefaultConstructable = requires {
             { T::Default() } -> Convertible<T>;
         };
+
+        template<typename T>
+        concept Maker = requires(T x) {
+            { x.make() };
+        };
     } // namespace concepts
 } // export namespace nacl

@@ -66,6 +66,9 @@ target_sources(nacl PUBLIC
   src/concepts.cppm
   src/panic.cppm
   src/utils.cppm
+  src/sequence.cppm
+  src/tuple.cppm
+  src/deferred.cppm
   src/ref.cppm
   src/option.cppm
   src/downcast.cppm
