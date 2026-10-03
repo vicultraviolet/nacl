@@ -26,10 +26,10 @@ export namespace nacl {
         );
     }
 
-    template<typename F, typename Args>
+    template<typename F, typename... Args>
     constexpr auto CallWithTuple(F&& fn, Tuple<Args...>& tuple) {
         using T = meta::ResultOf<F, Args...>;
-        return detail::CallWithTupleImpl<T, F>(
+        return detail::CallWithTuple<T, F>(
             Preserve<F>(fn),
             tuple,
             MakeIndexSequence<sizeof...(Args)>{}
@@ -38,7 +38,7 @@ export namespace nacl {
     template<typename F, typename... Args>
     constexpr auto CallWithTuple(F&& fn, const Tuple<Args...>& tuple) {
         using T = meta::ResultOf<F, Args...>;
-        return detail::CallWithTupleImpl<T, F>(
+        return detail::CallWithTuple<T, F>(
             Preserve<F>(fn),
             tuple,
             MakeIndexSequence<sizeof...(Args)>{}
@@ -47,7 +47,7 @@ export namespace nacl {
     template<typename F, typename... Args>
     constexpr auto CallWithTuple(F&& fn, Tuple<Args...>&& tuple) {
         using T = meta::ResultOf<F, Args...>;
-        return detail::CallWithTupleImpl<T, F>(
+        return detail::CallWithTuple<T, F>(
             Preserve<F>(fn),
             AsRvalue(tuple),
             MakeIndexSequence<sizeof...(Args)>{}
@@ -65,7 +65,7 @@ export namespace nacl {
             return DeferredConstruct {
                 Tuple<Args...>::New(
                     Preserve<Args>(args)...
-                );
+                )
             };
         }
 
@@ -84,7 +84,7 @@ export namespace nacl {
 
         [[nodiscard]] constexpr T make(void) const & { return NewFromTuple<T>(tuple); }
         [[nodiscard]] constexpr T make(void) & { return NewFromTuple<T>(tuple); }
-        [[nodiscard]] constexpr T make(void) && { return NewFromTuple<T>(Move(tuple)); }
+        [[nodiscard]] constexpr T make(void) && { return NewFromTuple<T>(AsRvalue(tuple)); }
     };
 
     template<typename T, typename... Args>
@@ -105,7 +105,7 @@ export namespace nacl {
                 Tuple<F, Args...>::New(
                     Preserve<F>(fn),
                     Preserve<Args>(args)...
-                );
+                )
             };
         }
 

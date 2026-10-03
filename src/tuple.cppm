@@ -38,15 +38,15 @@ export namespace nacl {
             );
         }
 
-        template<concepts::Maker HeadArgs, concepts::Maker... TailArgs>
+        template<concepts::Maker HeadDeferred, concepts::Maker... TailDeferred>
         [[nodiscard]] static Tuple NewFrom(
-            HeadArgs&& head_args,
-            TailArgs&&... tail_args
+            HeadDeferred&& head_deferred,
+            TailDeferred&&... tail_deferred
         ) {
             return Tuple(
                 tags::InPlace{},
-                Preserve<HeadArgs>(head_args),
-                Preserve<TailArgs>(tail_args)...
+                Preserve<HeadDeferred>(head_deferred),
+                Preserve<TailDeferred>(tail_deferred)...
             );
         }
 
@@ -65,12 +65,12 @@ export namespace nacl {
         }
 
         Tuple(Tuple&& other) noexcept
-        : Base(As<Base&&>(other)),
+        : Base((Base&&)other),
           m_Head(Preserve<Head>(other.m_Head))
         {}
         Tuple& operator=(Tuple&& other) noexcept {
             if (this != &other) {
-                Base::operator=(As<Base&&>(other));
+                Base::operator=((Base&&)other);
                 m_Head = Preserve<Head>(other.m_Head);
             }
             return *this;
@@ -78,8 +78,8 @@ export namespace nacl {
 
         [[nodiscard]] static constexpr usize Length(void) { return sizeof...(Tail) + 1; }
 
-        [[nodiscard]] constexpr Base& tail(void) { return As<Base&>(*this); }
-        [[nodiscard]] constexpr const Base& tail(void) const { return As<const Base&>(*this); }
+        [[nodiscard]] constexpr Base& tail(void) { return (Base&)*this; }
+        [[nodiscard]] constexpr const Base& tail(void) const { return (const Base&)*this; }
 
         [[nodiscard]] constexpr Head& head(void) { return m_Head; }
         [[nodiscard]] constexpr const Head& head(void) const { return m_Head; }
@@ -92,14 +92,17 @@ export namespace nacl {
         }
     protected:
         Tuple(Head&& h, Tail&&... tail)
-        : Base(Forward<Tail>(tail)...),
-          m_Head(Forward<Head>(h))
+        : Base(Preserve<Tail>(tail)...),
+          m_Head(Preserve<Head>(h))
         {}
 
-        template<concepts::Maker HeadArgs, concepts::Maker... TailArgs>
-        Tuple(tags::InPlace, HeadArgs&& head_args, TailArgs&&... tail_args)
-        : Base(tags::InPlace{}, Preserve<TailArgs>(tail_args)...),
-          m_Head(Preserve<HeadArgs>(head_args).make())
+        template<concepts::Maker HeadDeferred, concepts::Maker... TailDeferred>
+        Tuple(tags::InPlace,
+            HeadDeferred&& head_deferred,
+            TailDeferred&&... tail_deferred
+        )
+        : Base(tags::InPlace{}, Preserve<TailDeferred>(tail_deferred)...),
+          m_Head(Preserve<HeadDeferred>(head_deferred).make())
         {}
     private:
         Head m_Head;
@@ -171,6 +174,19 @@ export namespace nacl {
     [[nodiscard]] constexpr auto&& Get(Tuple<Signature...>&& t) {
         return AsRvalue(Get<I>(t));
     }
+
+    template<usize I, typename... Signature>
+    [[nodiscard]] constexpr auto& get(Tuple<Signature...>& tuple) {
+        return Get<I>(tuple);
+    }
+    template<usize I, typename... Signature>
+    [[nodiscard]] constexpr const auto& get(const Tuple<Signature...>& tuple) {
+        return Get<I>(tuple);
+    }
+    template<usize I, typename... Signature>
+    [[nodiscard]] constexpr auto&& get(Tuple<Signature...>&& tuple) {
+        return Get<I>(AsRvalue(tuple));
+    }
 } // export namespace nacl
 
 export namespace std {
@@ -196,18 +212,7 @@ export namespace std {
     };
 
     template<size_t I, typename T>
-    struct tuple_element<I, const T> : tuple_element<I, T> {};
-
-    template<size_t I, typename... Signature>
-    [[nodiscard]] constexpr auto& get(nacl::Tuple<Signature...>& tuple) {
-        return nacl::Get<I>(tuple);
-    }
-    template<size_t I, typename... Signature>
-    [[nodiscard]] constexpr const auto& get(const nacl::Tuple<Signature...>& tuple) {
-        return nacl::Get<I>(tuple);
-    }
-    template<size_t I, typename... Signature>
-    [[nodiscard]] constexpr auto&& get(nacl::Tuple<Signature...>&& tuple) {
-        return nacl::Get<I>(nacl::AsRvalue(tuple));
-    }
+    struct tuple_element<I, const T> {
+        using type = const typename tuple_element<I, T>::type;
+    };
 } // export namespace std
